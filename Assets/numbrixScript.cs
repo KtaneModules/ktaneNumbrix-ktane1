@@ -238,18 +238,88 @@ public class numbrixScript : MonoBehaviour
         }
     }
 
-    /*Twitch plays
-    #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"";
-    #pragma warning restore 414
+    //Twitch plays
+#pragma warning disable 414
+    private readonly string TwitchHelpMessage = @"<!{0} A4 43;A5 44> to input 43 in A4 square and 44 in A5 square, <!{0} reset> to reset the whole grid, <!{0} submit 43 44 45...> to input the whole grid all at once (including given numbers), note that the command must contain exactly 81 numbers";
+#pragma warning restore 414
 
     IEnumerator ProcessTwitchCommand(string command)
     {
         command = command.ToLowerInvariant().Trim();
-        Match m = Regex.Match(command, @"^()$");
-        yield return null;
+        if (Regex.IsMatch(command, @"^\s*reset\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            yield return null;
+            reset(true);
+            yield break;
+        }
+        string[] parameters = command.Split(' ');
+        if (Regex.IsMatch(parameters[0], @"^\s*submit\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            if (parameters.Length != 82) { yield return "sendtochaterror Wrong amount of parameters to fill in the whole grid!"; yield break; }
+            int num = 0;
+            for (int i = 1; i < parameters.Length; i++)
+            {
+                bool c = int.TryParse(parameters[i], out num);
+                if (!c) { yield return "sendtochaterror One of the parameters is invalid!"; yield break; }
+                if (num > 99 || num < 0) { yield return "sendtochaterror One of the parameters is not a two digit number!"; yield break; }
+            }
+            for (int i = 1; i < parameters.Length; i++)
+            {
+                squares[i - 1].GetComponent<KMSelectable>().OnInteract();
+                yield return null;
+                for (int j = 0; j < 2; j++)
+                {
+                    if (Convert.ToInt32(parameters[i]) < 10)
+                    {
+                        if (j == 0)
+                            handleKey(0);
+                        else
+                            handleKey(parameters[i][0] - '0');
+                    }
+                    else
+                    {
+                        handleKey(parameters[i][j] - '0');
+                    }
+                }
+            }
+        }
+        else
+        {
+            parameters = command.Split(';');
+            var presses = new List<KMSelectable>();
+            var numbers = new List<int>();
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                if (parameters[i].Length > 5 || parameters[i].Length < 3) { yield return "sendtochaterror Invalid command!"; yield break; }
+                var pair = parameters[i].Split(' ');
+                if (pair[0].Length != 2 || !"abcdefghi".Contains(pair[0][0]) || !"123456789".Contains(pair[0][1]))
+                {
+                    yield return "sendtochaterror Invalid square to select!"; yield break;
+                }
+                presses.Add(squares["abcdedefghi".IndexOf(pair[0][0]) + "123456789".IndexOf(pair[0][1]) * 9].GetComponent<KMSelectable>());
+
+                int n = 0;
+                bool d = int.TryParse(pair[1], out n);
+                if (d)
+                {
+                    if (n < 1 || n > 99) { yield return "sendtochaterror Invalid number to input!"; yield break; }
+                    numbers.Add(n);
+                }
+            }
+            for (int i = 0; i < presses.Count(); i++)
+            {
+                yield return null;
+                presses[i].OnInteract();
+                for (int j = 0; j < numbers[i].ToString("00").Length; j++)
+                {
+                    handleKey(numbers[i].ToString("00")[j] - '0');
+                    yield return null;
+                }
+            }
+        }
+
     }
-    */
+
 
     IEnumerator TwitchHandleForcedSolve()
     {
