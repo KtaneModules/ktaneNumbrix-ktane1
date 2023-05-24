@@ -23,6 +23,7 @@ public class numbrixScript : MonoBehaviour
     private bool focused;
 
     private int[] chosenPath = new int[81];
+    private int[] altPath = new int[81];
     private int[] solutionState = new int[81];
     private int selectedSquare = -1;
 
@@ -60,6 +61,7 @@ public class numbrixScript : MonoBehaviour
     {
         bigText.text = "";
         chosenPath = Enumerable.Repeat(-1, 81).ToArray();
+        altPath = Enumerable.Repeat(-1, 81).ToArray();
         var sb = new StringBuilder();
         foreach (GameObject k in squares)
         {
@@ -163,6 +165,52 @@ public class numbrixScript : MonoBehaviour
         Array.Copy(tempPath, chosenPath, tempPath.Length);
     }
 
+    bool solveCheck()
+    {
+        bool check = true;
+        for (int i = 0; i < squares.Length; i++)
+        {
+            if (squares[i].transform.GetChild(0).GetComponent<TextMesh>().text != solutionState[i].ToString())
+            {
+                check = false;
+            }
+        }
+        if (!check)
+        {
+            for (int i = 0; i < squares.Length; i++)
+            {
+                if (squares[i].transform.GetChild(0).GetComponent<TextMesh>().text == "1")
+                {
+                    altPath[0] = i;
+                }
+            }
+            if (altPath[0] != -1)
+            {
+                int k = -1;
+                var neighbours = new List<int>();
+                var nValues = new List<string>();
+                do
+                {
+                    k++;
+                    neighbours = new List<int>();
+                    nValues = new List<string>();
+                    if (altPath[k] % 9 > 0) { nValues.Add(squares[altPath[k] - 1].transform.GetChild(0).GetComponent<TextMesh>().text); neighbours.Add(altPath[k] - 1); }//Left
+                    if (altPath[k] % 9 < 8) { nValues.Add(squares[altPath[k] + 1].transform.GetChild(0).GetComponent<TextMesh>().text); neighbours.Add(altPath[k] + 1); }//Right
+                    if (altPath[k] > 8) { nValues.Add(squares[altPath[k] - 9].transform.GetChild(0).GetComponent<TextMesh>().text); neighbours.Add(altPath[k] - 9); }//Up
+                    if (altPath[k] < 72) { nValues.Add(squares[altPath[k] + 9].transform.GetChild(0).GetComponent<TextMesh>().text); neighbours.Add(altPath[k] + 9); }//Down
+
+                    if (nValues.Contains(((k + 1) + 1).ToString()))
+                    {
+                        altPath[k + 1] = neighbours[nValues.IndexOf(((k + 1) + 1).ToString())];
+                    }
+                }
+                while (nValues.Contains(((k + 1) + 1).ToString()));
+            }
+            check = !altPath.ToList().Contains(-1);
+        }
+        return check;
+    }
+
     IEnumerator solveAnim()
     {
         yield return null;
@@ -199,18 +247,23 @@ public class numbrixScript : MonoBehaviour
             }
         }
 
-        bool check = true;
-        for (int i = 0; i < squares.Length; i++)
-        {
-            if (squares[i].transform.GetChild(0).GetComponent<TextMesh>().text != solutionState[i].ToString())
-            {
-                check = false;
-            }
-        }
+        bool check = solveCheck();
         if (check)
         {
             module.HandlePass();
             moduleSolved = true;
+            if (altPath.ToList().Contains(-1))
+                Debug.LogFormat("[Numbrix #{0}] Submitted intended solution grid, module solved.", moduleId);
+            else
+            {
+                var sb = new StringBuilder();
+                foreach (int i in altPath)
+                {
+                    sb.Append(i.ToString() + ", ");
+                }
+                sb.Remove(sb.Length - 2, 2);
+                Debug.LogFormat("[Numbrix #{0}] Submitted alternative solution grid, which is (in reading order) {1}. Module solved regardless.", moduleId, sb.ToString());
+            }
             StartCoroutine(solveAnim());
         }
     }
@@ -219,6 +272,7 @@ public class numbrixScript : MonoBehaviour
     {
         if (selectedSquare < 0) return;
         if (moduleSolved || puzzles[rnd].ToList().Contains(selectedSquare)) return;
+        audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.TypewriterKey, transform);
         squares[selectedSquare].transform.GetChild(0).GetComponent<TextMesh>().text = (Convert.ToInt32(squares[selectedSquare].transform.GetChild(0).GetComponent<TextMesh>().text + k % 10) % 100).ToString();
     }
 
