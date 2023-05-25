@@ -216,20 +216,41 @@ public class numbrixScript : MonoBehaviour
         yield return null;
         audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, transform);
         squares[selectedSquare].GetComponent<MeshRenderer>().material.color = new Color(1f, 1f, 1f, 1f);
-        for (int i = 0; i < chosenPath.Length; i++)
+        if (altPath.ToList().Contains(-1))
         {
-            squares[chosenPath[i]].GetComponent<MeshRenderer>().material.color = new Color(0.7f, 1f, 0.7f, 1f);
-            yield return new WaitForSeconds(0.03f); 
+            for (int i = 0; i < chosenPath.Length; i++)
+            {
+                squares[chosenPath[i]].GetComponent<MeshRenderer>().material.color = new Color(0.7f, 1f, 0.7f, 1f);
+                yield return new WaitForSeconds(0.03f);
+            }
+            for (int i = 0; i < chosenPath.Length; i++)
+            {
+                squares[chosenPath[i]].transform.GetChild(0).GetComponent<TextMesh>().text = "";
+                yield return new WaitForSeconds(0.03f);
+            }
+            for (int i = 0; i < chosenPath.Length; i++)
+            {
+                squares[chosenPath[i]].SetActive(false);
+                yield return new WaitForSeconds(0.03f);
+            }
         }
-        for (int i = 0; i < chosenPath.Length; i++)
+        else
         {
-            squares[chosenPath[i]].transform.GetChild(0).GetComponent<TextMesh>().text = "";
-            yield return new WaitForSeconds(0.03f);
-        }
-        for (int i = 0; i < chosenPath.Length; i++)
-        {
-            squares[chosenPath[i]].SetActive(false);
-            yield return new WaitForSeconds(0.03f);
+            for (int i = 0; i < altPath.Length; i++)
+            {
+                squares[altPath[i]].GetComponent<MeshRenderer>().material.color = new Color(0.7f, 1f, 0.7f, 1f);
+                yield return new WaitForSeconds(0.03f);
+            }
+            for (int i = 0; i < altPath.Length; i++)
+            {
+                squares[altPath[i]].transform.GetChild(0).GetComponent<TextMesh>().text = "";
+                yield return new WaitForSeconds(0.03f);
+            }
+            for (int i = 0; i < altPath.Length; i++)
+            {
+                squares[altPath[i]].SetActive(false);
+                yield return new WaitForSeconds(0.03f);
+            }
         }
         bigText.text = "MODULE SOLVED!";
     }
