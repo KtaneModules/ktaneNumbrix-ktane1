@@ -277,8 +277,13 @@ public class numbrixScript : MonoBehaviour
                 Debug.LogFormat("[Numbrix #{0}] Submitted intended solution grid, module solved.", moduleId);
             else
             {
+                var newSolArr = new int[81];
+                for (int i = 0; i < newSolArr.Length; i++)
+                {
+                    newSolArr[altPath[i]] = i + 1;
+                }
                 var sb = new StringBuilder();
-                foreach (int i in altPath)
+                foreach (int i in newSolArr)
                 {
                     sb.Append(i.ToString() + ", ");
                 }
