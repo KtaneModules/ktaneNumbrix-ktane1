@@ -376,7 +376,7 @@ public class numbrixScript : MonoBehaviour
                 {
                     yield return "sendtochaterror Invalid square to select!"; yield break;
                 }
-                presses.Add(squares["abcdedefghi".IndexOf(pair[0][0]) + "123456789".IndexOf(pair[0][1]) * 9].GetComponent<KMSelectable>());
+                presses.Add(squares["abcdefghi".IndexOf(pair[0][0]) + "123456789".IndexOf(pair[0][1]) * 9].GetComponent<KMSelectable>());
 
                 int n = 0;
                 bool d = int.TryParse(pair[1], out n);
